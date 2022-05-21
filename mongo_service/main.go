@@ -58,13 +58,34 @@ func getItem(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(item)
 }
 
+func getMessagesList(w http.ResponseWriter, r *http.Request) {
+	from_id := mux.Vars(r)["from_id"]
+	to_id := mux.Vars(r)["to_id"]
+	messages := mongoapp.GetUserMessages(from_id, to_id)
+	json.NewEncoder(w).Encode(messages)
+}
+
+func send(w http.ResponseWriter, r *http.Request) {
+	var msg mongoapp.Message
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Println(err)
+	}
+
+	json.Unmarshal(reqBody, &msg)
+
+	mongoapp.SaveMessage(msg)
+}
+
 func main() {
 	mongoapp.Setup()
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/put", put).Methods("POST")
+	router.HandleFunc("/sendMessage", send).Methods("POST")
 	router.HandleFunc("/getAll", getAll).Methods("GET")
 	router.HandleFunc("/get/{id}", getItem).Methods("GET")
+	router.HandleFunc("/getMessages/{from_id}-{to_id}", getMessagesList).Methods("GET")
 	log.Println("API is listening on port 3000")
 	http.ListenAndServe("0.0.0.0:3000", router)
 }

@@ -1,11 +1,16 @@
 package mongo_managment
 
 import (
+	"fmt"
 	p "mongo_service/util"
-	"reflect"
+	"time"
+
+	// "reflect"
 	// "fmt"
 	"log"
-	// "go.mongodb.org/mongo-driver/bson"
+
+	"go.mongodb.org/mongo-driver/bson"
+	// "go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -31,21 +36,21 @@ func Setup() {
 	db := client.Database("messanger")
 	userCol = db.Collection("user")
 	messageBoxCol = db.Collection("messageBox")
-	messagesCol = db.Collection("messages")
+	// messagesCol = db.Collection("messages")
 	messageCol = db.Collection("message")
 }
 
 func CreateUser(u User) (string, error) {
 	//To create user we need to init MessageBox for him
-	mBoxId := insert(MessageBox{Messages: []string{}, Id: u.Nickname}, messageBoxCol)
+	mBoxId := insert(MessageBox{Messages: make([]Message, 0, 1000000), Id: u.Nickname}, messageBoxCol)
 	if mBoxId == "" {
 		return "", nil
 	}
-	u.MessageBox = mBoxId
-	u.Id = u.Nickname
+	u.MessageBox = mBoxId.(string)
+	// u.Id = u.Nickname
 	userId := insert(u, userCol)
 	
-	return userId, nil
+	return userId.(string), nil
 }
 
 func GetUser(id string) (User, error) {
@@ -61,32 +66,75 @@ func GetUser(id string) (User, error) {
 func GetUsers() ([]User, error) {
 	var users []User
 	var user User
-	findAll(userCol, user, users)
+	cursor, err := userCol.Find(Ctx, bson.D{})
+	if err != nil {
+		return users, nil
+	}
+	defer cursor.Close(Ctx)
+	
+	for cursor.Next(Ctx) {
+		err := cursor.Decode(&user)
+		if err != nil {
+			return users, err
+		}
+		users = append(users, user)
+	}
 	return users, nil
 }
 
-// func UpdateItem(id int, status bool, message string) error {
-// 	log.Println(id, status, message)
-// 	filter := bson.D{{"_id", id}}
-// 	update := bson.D{{"$set", bson.D{{"done", status}}}}
-// 	_, err := TodoListCol.UpdateOne(
-// 		Ctx,
-// 		filter,
-// 		update,
-// 	)
-// 	update = bson.D{{"$set", bson.D{{"message", message}}}}
-// 	_, err = TodoListCol.UpdateOne(
-// 		Ctx,
-// 		filter,
-// 		update,
-// 	)
-// 	return err
-// }
+func GetUserMessages(from, to string) []Message {
+	log.Printf("Getting messages from: %s to %s", from, to)
+	mBox := getMessageBox(User{Id:from})
+	return getMessageList(mBox, User{Id:to})
+}
 
-// func DeleteItem(id int, ) error {
-// 	_, err := TodoListCol.DeleteOne(Ctx, bson.D{{"_id", id}})
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
+func SaveMessage(msg Message) {
+	t := time.Now()
+	msg.Time = fmt.Sprintf("%d:%d:%d", t.Hour(), t.Minute(), t.Second())
+	msg.Date = fmt.Sprintf("%d.%d.%d", t.Year(), t.Month(), t.Day())
+	insert(msg, messageCol)
+	// log.Printf("Updated MessageBox %s\n", msg.Id)
+}
+
+func getMessageBox(u User) MessageBox {
+	mBox := MessageBox{Messages: make([]Message, 0, 1000000)}
+	encoded, err := findOne(u.Id, messageBoxCol)
+	if err != nil {
+		log.Println(err)
+	}	
+	err = encoded.Decode(&mBox)
+	if err != nil {
+		log.Println(err)
+	}
+	cur, err := messageBoxCol.Find(Ctx, bson.D{{"_id", u.Id}})
+	cur.All(Ctx, &mBox.Messages)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return mBox
+}
+
+func getMessageList(mBox MessageBox, to User) []Message {
+	var msg Message
+	var msgs []Message
+
+	cursor, err := messageCol.Find(Ctx, bson.D{})
+	if err != nil {
+		defer cursor.Close(Ctx)
+		return msgs
+	}
+
+	for cursor.Next(Ctx) {
+		err := cursor.Decode(&msg)
+		if err != nil {
+			return msgs
+		}
+		if (msg.From == mBox.Id && msg.To == to.Id) || (msg.From == to.Id && msg.To == mBox.Id) {
+			msgs = append(msgs, msg)
+		}
+		
+	}
+
+	return msgs
+}
