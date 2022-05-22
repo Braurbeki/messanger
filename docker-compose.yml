@@ -2,6 +2,7 @@ services:
 
   mongo:
     image: mongo:4.4
+    restart: always
     networks:
       - msgnetwork
     ports:
@@ -9,6 +10,8 @@ services:
 
   api:
     image: mongo-service
+    depends_on:
+      - mongo
     networks:
       - msgnetwork
     build: 
@@ -30,6 +33,9 @@ services:
   
   web:
     image: webui
+    depends_on:
+      - api
+      - mongo
     networks:
       - msgnetwork
     build:
