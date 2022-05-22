@@ -219,9 +219,9 @@ func getMessageList(mBox MessageBox, to User) []Message {
 		if err != nil {
 			return msgs
 		}
-		if (msg.From == mBox.Id && msg.To == to.Id) || (msg.From == to.Id && msg.To == mBox.Id) {
+		// if (msg.From == mBox.Id && msg.To == to.Id) || (msg.From == to.Id && msg.To == mBox.Id) {
 			msgs = append(msgs, msg)
-		}
+		// }
 		
 	}
 

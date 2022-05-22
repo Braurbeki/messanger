@@ -60,7 +60,7 @@ app.get('/user/:id/:destination', (req,res) => {
                         }
                     }
                 }
-                res.render('todo.ejs', {users: data, messages: messages, user: id, destination: destination});
+                res.render('todo.ejs', {users: data, messages: res_msg, user: id, destination: destination});
             }).catch(({response}) => {
                 console.log(response)
             })
