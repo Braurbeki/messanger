@@ -33,6 +33,7 @@ app.get('/user/:id', (req, res) => {
         
     }).catch(({response}) => {
         console.log(response)
+        res.render('todo.ejs', {users: null, messages: null, user: id, destination: null});
     })
 })
 
@@ -62,14 +63,11 @@ app.get('/user/:id/:destination', (req,res) => {
                 }
                 res.render('todo.ejs', {users: data, messages: res_msg, user: id, destination: destination});
             }).catch(({response}) => {
+                res.render('todo.ejs', {users: null, messages: null, user: id, destination: destination});
                 console.log(response)
             })
         } else {
-            axios.get(`${process.env.MONGO_API_URL}/getMessages/${id}-${destination}`).then(result => {
-                res.render('todo.ejs', {users: null, messages: null, user: id, destination: destination});
-            }).catch(({response}) => {
-                console.log(response)
-            })
+            res.render('todo.ejs', {users: null, messages: null, user: id, destination: destination});
         }
         
         // tcp.recieveMessages(res, id, data, destination)
@@ -77,6 +75,7 @@ app.get('/user/:id/:destination', (req,res) => {
         
     }).catch(({response}) => {
         console.log(response)
+        res.render('todo.ejs', {users: null, messages: null, user: id, destination: destination});
     })
 })
 
@@ -88,8 +87,12 @@ app.post('/send/:id/:destination', (req,res) => {
         message: req.body.content,
         adress: id,
         destination: destination
-    })
-    res.redirect(`/user/${id}/${destination}`)
+    }).catch(({response}) => {
+        console.log(response)
+    }).finally(() => {
+        res.redirect(`/user/${id}/${destination}`)
+    });
+    
 })
 
 app.post('/', (req, res) => {
@@ -102,25 +105,23 @@ app.post('/', (req, res) => {
         }
     }).catch(({response}) => {
         console.log(response)
+        res.render('registration.ejs', {my_warning: "Incorrect user or password"});
     })
 })
 
 app.post('/createUser', (req ,res) => {
 
     content = req.body
-    try {
-        axios.post(`${process.env.MONGO_API_URL}/put`, {
-            _id: content.user,
-            nickname: content.user,
-            hashed_pwd: content.pwd
-        }).then(result => {
-            res.redirect(`user/${content.user}`)
-        }).catch(({response}) => {
-            console.log(response)
-        })
-    } catch {
-
-    }
+    axios.post(`${process.env.MONGO_API_URL}/put`, {
+        _id: content.user,
+        nickname: content.user,
+        hashed_pwd: content.pwd
+    }).then(result => {
+        res.redirect(`user/${content.user}`)
+    }).catch(({response}) => {
+        console.log(response)
+        res.redirect(`user/${content.user}`)
+    })
 })
 
 
