@@ -49,21 +49,22 @@ app.get('/user/:id/:destination', (req,res) => {
                     delete data[i]
                 }
             }
-            axios.get(`${process.env.MONGO_API_URL}/getMessages/${id}-${destination}`).then(result => {
-                messages = result.data
-                console.log(`DEBUG: ${messages}`)
-                res_msg = []
-                if(messages != null) {
-                    for(i = 0; i < messages.length; i++) {
-                        if( (messages[i].adress == id && messages[i].destination == destination) || (messages[i].adress == destination && messages[i].destination == id) ) {
-                            res_msg.push(messages[i])
-                        }
-                    }
-                }
-                res.render('todo.ejs', {users: data, messages: messages, user: id, destination: destination});
-            }).catch(({response}) => {
-                console.log(response)
-            })
+            tcp.recieveMessages(res, id, data, destination)
+            // axios.get(`${process.env.MONGO_API_URL}/getMessages/${id}-${destination}`).then(result => {
+            //     messages = result.data
+            //     console.log(`DEBUG: ${messages}`)
+            //     res_msg = []
+            //     if(messages != null) {
+            //         for(i = 0; i < messages.length; i++) {
+            //             if( (messages[i].adress == id && messages[i].destination == destination) || (messages[i].adress == destination && messages[i].destination == id) ) {
+            //                 res_msg.push(messages[i])
+            //             }
+            //         }
+            //     }
+            //     res.render('todo.ejs', {users: data, messages: messages, user: id, destination: destination});
+            // }).catch(({response}) => {
+            //     console.log(response)
+            // })
         } else {
             axios.get(`${process.env.MONGO_API_URL}/getMessages/${id}-${destination}`).then(result => {
                 res.render('todo.ejs', {users: null, messages: null, user: id, destination: destination});
