@@ -1,5 +1,22 @@
 services:
+
   mongo:
     image: mongo:4.4
     ports:
       - 27017:27017
+
+  api:
+    image: mongo-service
+    build: 
+      context: ./mongo_service
+      dockerfile: ./Dockerfile.api
+    ports:
+      - 3000:3000
+  
+  broker:
+    image: message-broker
+    build: 
+      context: ./message_broker
+      dockerfile: ./Dockerfile.broker
+    ports:
+      - 36616:36616
