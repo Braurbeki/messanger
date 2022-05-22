@@ -30,11 +30,11 @@
 					<ul class="contact-list">
 						<% if( users != null ) { %>
                         <% users.forEach(details => { %>
-						<a href="/<%= user %>/<%= details._id %>">
+						<a href="/user/<%= user %>/<%= details._id %>">
 						<li class="person">
 							<span class="info">
 								<span class="name"><%= details.nickname %></span>
-								<span class="unread-messages">54</span>
+								<!-- <span class="unread-messages">54</span> -->
 							</span>
 						</li>
 						</a>
@@ -51,7 +51,11 @@
 
 				<div class="person">
 					<span class="info">
-						<span class="name">Braurbek</span>
+						<% if (destination != null) { %>
+						<span class="name"><%= destination %></span>
+						<% } else { %>
+						<span class="name"></span>
+						<% } %>
 					</span>
 				</div>
 				<div class="chatbox-messages">
@@ -78,7 +82,7 @@
                     <% }) %>
                     <% } %>
 
-
+				<% if (destination != null) { %>
 				<div class="message-form-container">
 					
 					<form class="message-form" action="/send/<%= user %>/<%= destination %>" method="POST">
@@ -94,7 +98,7 @@
 
 
 				</div>
-
+				<% } %>
 			</div>
 
 		</div>

@@ -30,6 +30,10 @@ body{
 	background:rgba(40,57,101,.9);
 }
 
+.warning{
+	color:#e6291b
+}
+
 .login-html .sign-in-htm,
 .login-html .sign-up-htm{
 	margin-top: 25px;

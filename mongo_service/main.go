@@ -74,7 +74,8 @@ func send(w http.ResponseWriter, r *http.Request) {
 
 	json.Unmarshal(reqBody, &msg)
 
-	mongoapp.SaveMessage(msg)
+	go mongoapp.SaveMessage(msg)
+	return
 }
 
 func main() {

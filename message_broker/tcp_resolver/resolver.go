@@ -10,7 +10,7 @@ import (
 	models "tcp/forms"
 )
 const (
-	host = "http://host.docker.internal:3000"
+	host = "http://api:3000"
 )
 func Recieve(b []byte, response *[]byte) {
 	var r models.Request
@@ -79,6 +79,7 @@ func getMessages(r models.Request) []byte {
 	if err != nil {
 		fmt.Println(err)
 	}
+	log.Printf("Message body: %s", body)
 	return body
 }
 
