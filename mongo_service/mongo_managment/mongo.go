@@ -24,10 +24,11 @@ func Setup() {
 	connectionURI := "mongodb://" + host + ":" + port
 	cOptions := options.Client().ApplyURI(connectionURI)
 	client, err := mongo.Connect(Ctx, cOptions)
+	
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	defer client.Disconnect(Ctx)
 	err = client.Ping(Ctx, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -41,6 +42,23 @@ func Setup() {
 }
 
 func CreateUser(u User) (string, error) {
+	props := p.ReadProperties(props_name)
+	host := props.GetString("mongo.host", "localhost")
+	port := props.GetString("mongo.port", "27017")
+	connectionURI := "mongodb://" + host + ":" + port
+	cOptions := options.Client().ApplyURI(connectionURI)
+	client, err := mongo.Connect(Ctx, cOptions)
+
+	db := client.Database("messanger")
+	userCol = db.Collection("user")
+	messageBoxCol = db.Collection("messageBox")
+	// messagesCol = db.Collection("messages")
+	messageCol = db.Collection("message")
+	
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(Ctx)
 	//To create user we need to init MessageBox for him
 	mBoxId := insert(MessageBox{Messages: make([]Message, 0, 1000000), Id: u.Nickname}, messageBoxCol)
 	if mBoxId == "" {
@@ -54,6 +72,24 @@ func CreateUser(u User) (string, error) {
 }
 
 func GetUser(id string) (User, error) {
+	props := p.ReadProperties(props_name)
+	host := props.GetString("mongo.host", "localhost")
+	port := props.GetString("mongo.port", "27017")
+	connectionURI := "mongodb://" + host + ":" + port
+	cOptions := options.Client().ApplyURI(connectionURI)
+	client, err := mongo.Connect(Ctx, cOptions)
+
+	db := client.Database("messanger")
+	userCol = db.Collection("user")
+	messageBoxCol = db.Collection("messageBox")
+	// messagesCol = db.Collection("messages")
+	messageCol = db.Collection("message")
+	
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(Ctx)
+
 	var u User
 	encoded, err := findOne(id, userCol)
 	encoded.Decode(&u)
@@ -64,6 +100,24 @@ func GetUser(id string) (User, error) {
 }
 
 func GetUsers() ([]User, error) {
+	props := p.ReadProperties(props_name)
+	host := props.GetString("mongo.host", "localhost")
+	port := props.GetString("mongo.port", "27017")
+	connectionURI := "mongodb://" + host + ":" + port
+	cOptions := options.Client().ApplyURI(connectionURI)
+	client, err := mongo.Connect(Ctx, cOptions)
+
+	db := client.Database("messanger")
+	userCol = db.Collection("user")
+	messageBoxCol = db.Collection("messageBox")
+	// messagesCol = db.Collection("messages")
+	messageCol = db.Collection("message")
+	
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(Ctx)
+
 	var users []User
 	var user User
 	cursor, err := userCol.Find(Ctx, bson.D{})
@@ -83,16 +137,51 @@ func GetUsers() ([]User, error) {
 }
 
 func GetUserMessages(from, to string) []Message {
+	props := p.ReadProperties(props_name)
+	host := props.GetString("mongo.host", "localhost")
+	port := props.GetString("mongo.port", "27017")
+	connectionURI := "mongodb://" + host + ":" + port
+	cOptions := options.Client().ApplyURI(connectionURI)
+	client, err := mongo.Connect(Ctx, cOptions)
+
+	db := client.Database("messanger")
+	userCol = db.Collection("user")
+	messageBoxCol = db.Collection("messageBox")
+	// messagesCol = db.Collection("messages")
+	messageCol = db.Collection("message")
+	
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(Ctx)
 	log.Printf("Getting messages from: %s to %s", from, to)
 	mBox := getMessageBox(User{Id:from})
 	return getMessageList(mBox, User{Id:to})
 }
 
 func SaveMessage(msg Message) {
+
+	props := p.ReadProperties(props_name)
+	host := props.GetString("mongo.host", "localhost")
+	port := props.GetString("mongo.port", "27017")
+	connectionURI := "mongodb://" + host + ":" + port
+	cOptions := options.Client().ApplyURI(connectionURI)
+	client, err := mongo.Connect(Ctx, cOptions)
+	
+	db := client.Database("messanger")
+	userCol = db.Collection("user")
+	messageBoxCol = db.Collection("messageBox")
+	// messagesCol = db.Collection("messages")
+	messageCol = db.Collection("message")
+	if err != nil {
+		log.Fatal(err)
+	}
+	
 	t := time.Now()
 	msg.Time = fmt.Sprintf("%d:%d:%d", t.Hour(), t.Minute(), t.Second())
 	msg.Date = fmt.Sprintf("%d.%d.%d", t.Year(), t.Month(), t.Day())
 	insert(msg, messageCol)
+	client.Disconnect(Ctx)
 	// log.Printf("Updated MessageBox %s\n", msg.Id)
 }
 
