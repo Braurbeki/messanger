@@ -15,3 +15,6 @@ Project is built from four pods:
    -  Note: both `Mongo Service` and `Mongo DB` pods are configured in the internal network, you can't access them externally.
 ## Database architecture
 ![img](design/mongo.png)
+## App preview
+![img](design/preview_1.png)
+![img](design/preview_2.png)
